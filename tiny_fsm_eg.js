@@ -33,25 +33,28 @@ RoundEnd          .OK => RoundStart      // let do next round
 
 tinyfsm.js
 ```
+//NOTES: caller may add fsm_o checking for the broken links, whatever.
+
 module.exports = (lgc,fsm_data,step_start)=>{
+
 	//parse fsm from str to obj:
 	var fsm_o = (typeof fsm_data=='object') ? fsm_data : fsm_data.split(/[\n\r]+/).reduce(
 		(r,e)=>(m=e.replace(/\s/g,'').match(/^(\w*)(\.(\w*)=>(\w*))?/))&&(r[m[1]]=(r[m[1]]||{}),r[m[1]][m[3]]=m[4],r),{}
 	);
-	//NOTES: may add check fsm_o for the broken links
 
+	//find start:
 	if(!step_start){ for(var nm in fsm_o){ if(nm){step_start=nm; break}} }
 
-	//tiny fsm exec engine
+	//tiny fsm exec engine:
 	var fsm_func = (step_name,prev_nm,prev_sts,prev_rst) =>
-		lgc.call(step_name,prev_nm,prev_sts,prev_rst).then((rst,STS,step_next)=>(
+		lgc[step_name] ? lgc[step_name](prev_rst,prev_nm,prev_sts).then((rst,STS,step_next)=>(
 			STS = (rst||{}).STS,
 			step_next = (fsm_o[step_name]||{})[STS],
 			step_next ? fsm_func(step_next,step_name,STS,rst) : rst
-		));
-
+		)) : {STS:'KO',errmsg:'Not Found '+step_name};
 	return fsm_func(step_start);
 };
+
 ```
 calling example:
 ```
