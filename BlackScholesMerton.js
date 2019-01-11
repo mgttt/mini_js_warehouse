@@ -47,6 +47,14 @@ function BlackScholesMerton(C1P0,K,S,T,r1,r2,d){
 		throw new Error("BlackScholesMerton need t>0");
 	}
 }
+function BlackScholesMerton(C1P0,K,S,T,r1,r2,d){
+	if(!(T>0))T=0;
+	var d1 = (_log(K/S)+((r1-r2)+d*d/2)*T)/(d*_sqrt(T));
+	var d2 = (_log(K/S)-((r2-r1)+d*d/2)*T)/(d*_sqrt(T));
+	var n = (C1P0==1 || C1P0=='c') ? 1:-1;
+	return n*(K*_exp(-r2*T)*_cdf(n*d1)-S*_exp(-r1*T)*_cdf(n*d2))
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //console.log(BlackScholesMerton('c',21000,20800,3/365,0.0019,0.0001,0.1363));
 //console.log(BlackScholesMerton('c',21000,22800,5/365,0.0019,0.0001,0.1363));
