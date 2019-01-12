@@ -82,8 +82,9 @@ RoundEnd          .OK => RoundStart      // let do next round
 module.exports = (lgc,fsm_data,step_start)=>{
 
 	//parse fsm from str to obj:
+	var pt;
 	var fsm_o = (typeof fsm_data=='object') ? fsm_data : fsm_data.split(/[\n\r]+/).reduce(
-		(r,e,x,y,z,pt)=>(m=e.replace(/\s/g,'').match(/^(\w+)?(\.(\w*)=>(\w*))?/))&&(pt=m[1]||pt,pt&&(r[pt]=(r[pt]||{}),r[pt][m[3]]=m[4]),r),{}
+		(r,e)=>(m=e.replace(/\s/g,'').match(/^(\w+)?(\.(\w*)=>(\w*))?/))&&(pt=m[1]||pt,pt&&(r[pt]=(r[pt]||{}),r[pt][m[3]]=m[4]),r),{}
 	);
 	//console.log(fsm_o);
 
