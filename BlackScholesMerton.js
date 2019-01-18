@@ -24,6 +24,12 @@ var _cdf=function(x){
 	var y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*_exp(-x*x);
 	return 0.5*(1.0 + y*sign);
 };
+var _cdf = (xx) => {
+	var x = _abs(xx)/_sqrt(2.0);
+	var t = 1.0/(1.0 + 0.3275911*x);
+	var y = 1.0 - (((((1.061405429*t + -1.453152027)*t) + 1.421413741)*t + -0.284496736)*t + 0.254829592)*t*_exp(-x*x);
+	return 0.5*(1.0 + y*(xx<0?-1:1));
+};
 //@ref https://en.wikipedia.org/wiki/Black_model
 //K  :spot price of the underlying asset
 //S  :strike price
