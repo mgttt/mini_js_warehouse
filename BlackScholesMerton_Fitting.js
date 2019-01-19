@@ -43,8 +43,8 @@ function BlackScholesMerton(C1P0,K,S,T,r1,r2,d){
 
 function MeanAndVariance(a){
 	var n=0,sm=0,sq=0;
-	for(var v of a){ n+=1;sm+=v;sq+=v*v; }
-	var m = sm / n, v = (sq - sm*sm/n) / (n-1);
+	for(var va of a){ n+=1;sm+=va;sq+=va*va; }
+	var m = n>0 ? (sm / n) :0, v = (n>1) ? Math.sqrt((sq - sm*sm/n) / (n-1)) : 0;
 	return {n,sm,sq,m,v}
 }
 
@@ -71,10 +71,12 @@ function Find1(c_a,p_a,T,K){
 		for(var j=0;j<mxj;j++){
 			for(var k=0;k<mxk;k++){
 				var c = Calc(c_a,p_a,i*0.01/mxi,j*0.03/mxj,0.0+k*(0.3-0.0)/mxk,T,K);
+				//var d = c.c.v;
+				//var d = c.p.v;
 				var d = (c.c.v+c.p.v)/2;
 				if( d < fv ){
 					fv = d, fc = {c,i,j,k,r1:i*0.01/mxi,r2:0.03*j/mxj,dlt:k*0.3/mxk};
-					console.log(d,i,j,k);
+					//console.log(d,i,j,k);
 				}
 				f1.push = c;
 			}
@@ -101,6 +103,20 @@ var p_a = {
 	27800:(  0+1100)/2,
 	28000:(722+855)/2,
 };
-console.log(Find1(c_a,p_a,7/365,27430),sum_calc);
-//console.log(Find1(10/365,27360.5),sum_calc);
+//console.log(Find1(c_a,p_a,7/365,27430),sum_calc);
+//console.log(Find1(c_a,p_a,6.5/365,27430),sum_calc);
+//console.log(Find1(c_a,p_a,7/365,27360.5),sum_calc);
+//console.log(Find1(c_a,p_a,6.5/365,27360.5),sum_calc);
+//console.log(Find1(c_a,p_a,7.5/365,27252),sum_calc);
+//console.log(Find1(c_a,p_a,7/365,27252),sum_calc);
+console.log(Find1(c_a,p_a,7.5/365,27429),sum_calc);
+console.log(Find1(c_a,p_a,7/365,27429),sum_calc);
+console.log(Find1(c_a,p_a,6.5/365,27429),sum_calc);
 
+console.log(Find1(c_a,p_a,7/365,27252),sum_calc);
+
+//console.log(MeanAndVariance([1,2,3,4,5,6]));
+//console.log(MeanAndVariance([1,2,3,4]));
+//console.log(MeanAndVariance([1]));
+
+//http://www.quamnet.com/Quote.action?stockCode=VHSI
