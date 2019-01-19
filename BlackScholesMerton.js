@@ -25,11 +25,12 @@ var _cdf=function(x){
 	return 0.5*(1.0 + y*sign);
 };
 var _cdf = (xx) => {
-	var x = _abs(xx)/_sqrt(2.0);
-	var t = 1.0/(1.0 + 0.3275911*x);
-	var y = 1.0 - (((((1.061405429*t + -1.453152027)*t) + 1.421413741)*t + -0.284496736)*t + 0.254829592)*t*_exp(-x*x);
-	return 0.5*(1.0 + y*(xx<0?-1:1));
+	var x = _abs(xx) / _sqrt(2.0),
+		t = 1.0 / (1.0 + 0.3275911*x),
+		y = 1.0 - (((((1.061405429*t + -1.453152027)*t) + 1.421413741)*t + -0.284496736)*t + 0.254829592)*t*_exp(-x*x);
+	return 0.5 * (1.0 + y*(xx<0?-1:1) );
 };
+
 //@ref https://en.wikipedia.org/wiki/Black_model
 //K  :spot price of the underlying asset
 //S  :strike price
@@ -58,6 +59,14 @@ function BlackScholesMerton(C1P0,K,S,T,r1,r2,d){
 	var d1 = (_log(K/S)+((r1-r2)+d*d/2)*T)/(d*_sqrt(T));
 	var d2 = (_log(K/S)-((r2-r1)+d*d/2)*T)/(d*_sqrt(T));
 	var n = (C1P0==1 || C1P0=='c') ? 1:-1;
+	return n*(K*_exp(-r2*T)*_cdf(n*d1)-S*_exp(-r1*T)*_cdf(n*d2))
+}
+function BlackScholesMerton(C1P0,K,S,T,r1,r2,d){
+	if(!(T>0))T=0;
+	var dd = d*_sqrt(T), dd2=d*d/2, df=r1-r2,
+		d1 = (_log(K/S)+(df+dd2)*T)/dd,
+		d2 = (_log(K/S)+(df-dd2)*T)/dd,
+		n = (C1P0==1 || C1P0=='c') ? 1:-1;
 	return n*(K*_exp(-r2*T)*_cdf(n*d1)-S*_exp(-r1*T)*_cdf(n*d2))
 }
 
