@@ -42,12 +42,9 @@ function BlackScholesMerton(C1P0,K,S,T,r1,r2,d){
 //console.log(BlackScholesMerton('p',26528,25600,20/365,0.0000,0.0000,0.2043));
 
 function MeanAndVariance(a){
-	var n=0;sm=0;sq=0;
-	for(var v of a){
-		n+=1;sm+=v;sq+=v*v;
-	}
-	var m = sm / n;
-	var v = (sq - sm*sm/n) / (n-1)
+	var n=0,sm=0,sq=0;
+	for(var v of a){ n+=1;sm+=v;sq+=v*v; }
+	var m = sm / n, v = (sq - sm*sm/n) / (n-1);
 	return {n,sm,sq,m,v}
 }
 
