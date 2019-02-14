@@ -30,6 +30,17 @@ var _cdf = (xx) => {
 		y = 1.0 - (((((1.061405429*t + -1.453152027)*t) + 1.421413741)*t + -0.284496736)*t + 0.254829592)*t*_exp(-x*x);
 	return 0.5 * (1.0 + y*(xx<0?-1:1) );
 };
+//cdf() for ES6
+var cdf = (xx) => (
+	{abs,sqrt,exp}=Math,
+	x = abs(xx) / sqrt(2.0),
+	t = 1.0 / (1.0 + 0.3275911*x),
+	y = 1.0 - (((((1.061405429*t + -1.453152027)*t) + 1.421413741)*t + -0.284496736)*t + 0.254829592)*t*exp(-x*x),
+	0.5 * (1.0 + y * (xx<0?-1:1) )
+);
+
+//quick test
+//[-2,-1,0,1,2].forEach(el=>console.log(el,cdf(el)));
 
 //@ref https://en.wikipedia.org/wiki/Black_model
 //K  :spot price of the underlying asset
