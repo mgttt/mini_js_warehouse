@@ -97,7 +97,7 @@ module.exports = (lgc,fsm_data,step_start)=>{
 			STS = (rst||{}).STS,
 			step_next = (fsm_o[step_name]||{})[STS],
 			step_next ? fsm_func(step_next,step_name,STS,rst) : rst
-		)) : require('Q')({STS:'KO',errmsg:(prev_nm)?(prev_nm+'.'+prev_sts+'?=>'+step_name):(step_name)});
+		)) : require('q')({STS:'KO',errmsg:(prev_nm)?(prev_nm+'.'+prev_sts+'?=>'+step_name):(step_name)});
 	return fsm_func(step_start);
 };
 
