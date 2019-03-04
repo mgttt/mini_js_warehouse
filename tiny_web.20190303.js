@@ -1,4 +1,4 @@
-<script src="q.1.5.1.min.js"></script>
+<script src="q.1.5.1.min.js" size="16158"></script>
 <script>
 function getQueryStr(){a=location.search.substr(1);b=location.hash.substr(1);return a+((a&&b)?'&':'')+b}
 function getQueryVar(k,r){if(!this._qva||r){var _qva={};getQueryStr().replace(/([^?=&]+)(=([^&]*))?/g,function($0,$1,$2,$3){_qva[$1]=$3});this._qva=_qva};return k?this._qva[k]:this._qva}
