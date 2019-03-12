@@ -1,8 +1,30 @@
 //NOTES:
-//try to be small;
-//try not using "this"/"new" ...
-//@ref
-//https://github.com/muhmi/javascript-bson/blob/master/lib/bson.js
+// try to be small;
+// try not using "this"/"new";
+// @ref
+// https://github.com/muhmi/javascript-bson/blob/master/lib/bson.js
+
+//before complete, maybe tmp use:
+//https://cdnjs.cloudflare.com/ajax/libs/js-bson/2.0.8/bson.min.js
+/*usage{
+const BSON = require('./bson.min');
+
+const bson = new BSON();//TODO ...
+
+//console.log(bson.serialize,BSON.Long);
+
+const Long = BSON.Long;
+
+const doc = { long: Long.fromNumber(100) };
+
+// Serialize a document
+const data = bson.serialize(doc);
+console.log('data:', data);
+
+// Deserialize the resulting Buffer
+const doc_2 = bson.deserialize(data);
+console.log('doc_2:', doc_2);
+|*/
 
 //;(function(hook_parent) { })();
 //	hook_parent = hook_parent
@@ -140,97 +162,97 @@ function factory_binary_decoder(hook_parent){
 			return v;
 		}
 		//,read64//TODO
-		//,fromBuffer : function (data) {
-		//	if(typeof(data)=='undefined') throw "fromBuffer(Buffer data)";
-		//	_this.reset(data);
-		//	_this.length = _this.read32();
-		//	_this.length -= offset;
-		//	return _this.parseElist();
-		//}
-		//		,parseElist : function () {
-		//			var kv = {};
-		//			while (this.offset < this.length - 1) {
-		//
-		//				var type = this.readByte();
-		//
-		//				// TODO: there is a bug in the decoder or encoder... see the line below
-		//				if (type == 0x00) return kv;
-		//
-		//				if (type == 0x1) {
-		//					var k = this.parseCstring(),
-		//						v = this.parseFloat();
-		//					kv[k]=v;
-		//					continue;
-		//				}
-		//
-		//				if (type == 0x2) {
-		//					var k = this.parseCstring(),
-		//						v = this.parseString();
-		//					kv[k]=v;
-		//					continue;
-		//				}
-		//
-		//				if (type == 0x3 || type == 0x4) {
-		//					var k = this.parseCstring(),
-		//						v = new BSONParser().parse(this.data.slice(this.offset));
-		//					this.offset += this.readInt32();
-		//					if (type == 4) {
-		//						c = [];
-		//						for (i in v) c.push(v[i]);
-		//						v = c;
-		//					}
-		//
-		//					kv[k]=v;
-		//					continue;
-		//				}
-		//
-		//				if (type == 0x5) {
-		//					var k = this.parseCstring(),
-		//						v = this.parseBinary();
-		//					kv[k]=v;
-		//					continue;
-		//				}
-		//
-		//				if (type == 0x8) {
-		//					var k = this.parseCstring(),
-		//						v = this.readByte() == 1;
-		//					kv[k]=v;
-		//					continue;
-		//				}
-		//
-		//				if (type == 0x9) {
-		//					var k = this.parseCstring(),
-		//						v = this.readInt64();
-		//					kv[k]=new Date(v);
-		//					continue;
-		//				}
-		//
-		//				if (type == 0x0a) {
-		//					var k = this.parseCstring();
-		//					kv[k]=null;
-		//					continue;
-		//				}
-		//
-		//				if (type == 0x10) {
-		//					var k = this.parseCstring(),
-		//						v = this.readInt32();
-		//					kv[k]=v;
-		//					continue;
-		//				}
-		//
-		//				if (type == 0x11) {
-		//					var k = this.parseCstring(),
-		//						v = this.readInt64();
-		//					kv[k]=v;
-		//					continue;
-		//				}
-		//
-		//				throw "Unrecognized data type 0x" + type.toString(16) + " @"+this.offset;
-		//
-		//			};
-		//
-		//			return kv;
-		//		}
+		,decode: function (data) {
+			if(typeof(data)=='Buffer') throw "need decode(Buffer data)";
+			_this.reset(data);
+			_this.length = _this.read32();
+			_this.length -= offset;
+			return _this._inner_decode();
+		}
+		,_inner_decode: function () {
+			var kv = {};
+			while (this.offset < this.length - 1) {
+
+				var type = this.readByte();
+
+				// TODO: there is a bug in the decoder or encoder... see the line below
+				if (type == 0x00) return kv;
+
+				if (type == 0x1) {
+					var k = this.parseCstring(),
+						v = this.parseFloat();
+					kv[k]=v;
+					continue;
+				}
+
+				if (type == 0x2) {
+					var k = this.parseCstring(),
+						v = this.parseString();
+					kv[k]=v;
+					continue;
+				}
+
+				if (type == 0x3 || type == 0x4) {
+					var k = this.parseCstring(),
+						v = new BSONParser().parse(this.data.slice(this.offset));
+					this.offset += this.readInt32();
+					if (type == 4) {
+						c = [];
+						for (i in v) c.push(v[i]);
+						v = c;
+					}
+
+					kv[k]=v;
+					continue;
+				}
+
+				if (type == 0x5) {
+					var k = this.parseCstring(),
+						v = this.parseBinary();
+					kv[k]=v;
+					continue;
+				}
+
+				if (type == 0x8) {
+					var k = this.parseCstring(),
+						v = this.readByte() == 1;
+					kv[k]=v;
+					continue;
+				}
+
+				if (type == 0x9) {
+					var k = this.parseCstring(),
+						v = this.readInt64();
+					kv[k]=new Date(v);
+					continue;
+				}
+
+				if (type == 0x0a) {
+					var k = this.parseCstring();
+					kv[k]=null;
+					continue;
+				}
+
+				if (type == 0x10) {
+					var k = this.parseCstring(),
+						v = this.readInt32();
+					kv[k]=v;
+					continue;
+				}
+
+				if (type == 0x11) {
+					var k = this.parseCstring(),
+						v = this.readInt64();
+					kv[k]=v;
+					continue;
+				}
+
+				throw "Unrecognized data type 0x" + type.toString(16) + " @"+this.offset;
+
+			};
+
+			return kv;
+		}
 		//		,parseCstring : function () {
 		//			var str = new Buffer(256), i;
 		//			for (i = 0; i < 256; i++) {
@@ -257,13 +279,13 @@ function factory_binary_decoder(hook_parent){
 	};
 	return _this;
 }
-function factory_binary(hook_parent){
-}
+//function factory_binary(hook_parent){
+//}
 
 var logger=console;
 
-var encoder = factory_binary_encoder();
-
 var object = {key: 'value', list: [1,2,3,4,5,6,7,8,9], magical: 10, sub: {list: ['string', 'list', 10]}};
-var pack = encoder.encode(object);
-logger.log('pack=',pack);
+var encoded = factory_binary_encoder.encode(object);
+logger.log('encoded=',encoded);
+var decoded = factory_binary_decoder.decode(encoded);
+logger.log('decoded=',decoded);
