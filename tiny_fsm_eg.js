@@ -97,8 +97,38 @@ module.exports = (lgc,fsm_data,step_start)=>{
 			STS = (rst||{}).STS,
 			step_next = (fsm_o[step_name]||{})[STS],
 			step_next ? fsm_func(step_next,step_name,STS,rst) : rst
-		)) : require('Q')({STS:'KO',errmsg:(prev_nm)?(prev_nm+'.'+prev_sts+'?=>'+step_name):(step_name)});
+		)) : require('q')({STS:'KO',errmsg:(prev_nm)?(prev_nm+'.'+prev_sts+'?=>'+step_name):(step_name)});
 	return fsm_func(step_start);
+};
+# v4 fixed mem leak (defer() need time to clean up...)
+module.exports = (lgc,fsm_data,step_start)=>{
+	//parse fsm from str to obj:
+	var pt;
+	var fsm_o = (typeof(fsm_data)=='object') ? fsm_data : fsm_data.split(/[\n\r]+/).reduce(
+		(r,e)=>(m=e.replace(/\s/g,'').match(/^(\w+)?(\.(\w*)=>(\w*))?/))&&(pt=m[1]||pt,pt&&(r[pt]=(r[pt]||{}),r[pt][m[3]]=m[4]),r),{}
+	);
+	var Q = require('q');
+	//find start:
+	if(!step_start){ for(var nm in fsm_o){ if(nm){step_start=nm; break}} }
+	//tiny fsm exec engine:
+	var dfr=Q.defer();
+	var fsm_exec = (step_name,prev_nm,prev_sts,prev_rst) => {
+		if(lgc[step_name]){
+			lgc[step_name](prev_rst,prev_nm,prev_sts).then(rst=>{
+				var STS = (rst||{}).STS;
+				var step_next = (fsm_o[step_name]||{})[STS];
+				if(step_next){
+					fsm_exec(step_next,step_name,STS,rst)
+				}else{
+					dfr.resolve(rst);
+				}
+			});
+		}else{
+			dfr.resolve({STS:'KO',errmsg:(prev_nm)?(prev_nm+'.'+prev_sts+'?=>'+step_name):(step_name)});
+		}
+	};
+	fsm_exec(step_start);
+	return dfr.promise;
 };
 
 /////
