@@ -102,6 +102,7 @@ function factory_binary_encoder(hook_parent){
 					_this.writeCstring(k);
 					_this.write32(v);
 				} else {
+					//TODO
 					_this.writeByte(0x11);
 					_this.writeCstring(k);
 					_this.writeInt64(v);
@@ -139,63 +140,63 @@ function factory_binary_encoder(hook_parent){
 }
 
 function factory_binary_decoder(hook_parent){
-	var buffer = [];
+	var data = [];
 	var offset = 0;
 	var length = 0;
 	var _this = {
-		offset,buffer
+		offset,data
 		,readByte:function(){
-			return buffer[offset++];
+			return data[offset++];
 		}
-		,reset : function (data) {
+		,reset : function (_data) {
 			offset = 0;
 			length = 0;
-			buffer = data || [];
+			data = _data || [];
 		}
 		,read32 : function(){
 			var v = 0;
-			v |= (buffer[offset+3] << 24);
-			v |= (buffer[offset+2] << 16);
-			v |= (buffer[offset+1] << 8);
-			v |= (buffer[offset+0]);
+			v |= (data[offset+3] << 24);
+			v |= (data[offset+2] << 16);
+			v |= (data[offset+1] << 8);
+			v |= (data[offset+0]);
 			offset += 4;
 			return v;
 		}
 		//,read64//TODO
-		,decode: function (data) {
-			if(typeof(data)=='Buffer') throw "need decode(Buffer data)";
-			_this.reset(data);
+		,decode: function (_data) {
+			if(typeof(_data)=='Buffer') throw "need decode(Buffer data)";
+			_this.reset(_data);
 			_this.length = _this.read32();
 			_this.length -= offset;
 			return _this._inner_decode();
 		}
 		,_inner_decode: function () {
 			var kv = {};
-			while (this.offset < this.length - 1) {
+			while (offset < _this.length - 1) {
 
-				var type = this.readByte();
+				var type = _this.readByte();
 
 				// TODO: there is a bug in the decoder or encoder... see the line below
 				if (type == 0x00) return kv;
 
 				if (type == 0x1) {
-					var k = this.parseCstring(),
-						v = this.parseFloat();
+					var k = _this.parseCstring(),
+						v = _this.parseFloat();
 					kv[k]=v;
 					continue;
 				}
 
 				if (type == 0x2) {
-					var k = this.parseCstring(),
-						v = this.parseString();
+					var k = _this.parseCstring(),
+						v = _this.parseString();
 					kv[k]=v;
 					continue;
 				}
 
 				if (type == 0x3 || type == 0x4) {
-					var k = this.parseCstring(),
-						v = new BSONParser().parse(this.data.slice(this.offset));
-					this.offset += this.readInt32();
+					var k = _this.parseCstring(),
+						v = factory_binary_decoder().decode(data.slice(offset));
+					offset += _this.read32();
 					if (type == 4) {
 						c = [];
 						for (i in v) c.push(v[i]);
@@ -207,75 +208,84 @@ function factory_binary_decoder(hook_parent){
 				}
 
 				if (type == 0x5) {
-					var k = this.parseCstring(),
-						v = this.parseBinary();
+					var k = _this.parseCstring(),
+						v = _this.parseBinary();
 					kv[k]=v;
 					continue;
 				}
 
 				if (type == 0x8) {
-					var k = this.parseCstring(),
-						v = this.readByte() == 1;
+					var k = _this.parseCstring(),
+						v = _this.readByte() == 1;
 					kv[k]=v;
 					continue;
 				}
 
 				if (type == 0x9) {
-					var k = this.parseCstring(),
-						v = this.readInt64();
+					var k = _this.parseCstring(),
+						v = _this.readInt64();
 					kv[k]=new Date(v);
 					continue;
 				}
 
 				if (type == 0x0a) {
-					var k = this.parseCstring();
+					var k = _this.parseCstring();
 					kv[k]=null;
 					continue;
 				}
 
 				if (type == 0x10) {
-					var k = this.parseCstring(),
-						v = this.readInt32();
+					var k = _this.parseCstring(),
+						v = _this.read32();
 					kv[k]=v;
 					continue;
 				}
 
 				if (type == 0x11) {
-					var k = this.parseCstring(),
-						v = this.readInt64();
+					var k = _this.parseCstring(),
+						v = _this.readInt64();
 					kv[k]=v;
 					continue;
 				}
 
-				throw "Unrecognized data type 0x" + type.toString(16) + " @"+this.offset;
+				throw "Unrecognized data type 0x" + type.toString(16) + " @"+offset;
 
 			};
 
 			return kv;
+		}//_inner_decode
+
+		,parseCstring : function () {
+			var str = Buffer.alloc(256), i;
+			for (i = 0; i < 256; i++) {
+				var chr = _this.readByte();
+				if (chr == 0) break;
+				str[i] = chr;
+			}
+			return str.toString('ascii', 0, i);
 		}
-		//		,parseCstring : function () {
-		//			var str = new Buffer(256), i;
-		//			for (i = 0; i < 256; i++) {
-		//				var chr = this.readByte();
-		//				if (chr == 0) break;
-		//				str[i] = chr;
-		//			}
-		//			return str.toString('ascii', 0, i);
-		//		}
-		//		,parseFloat = function () {
-		//			return this.readInt64();
-		//		}
-		//		parseBinary = function () {
-		//			var len = this.readInt32();
-		//			var type = this.readByte(); // TODO: sub type is ignored for now
-		//			var str = new Buffer(len), i;
-		//
-		//			for (i = 0; i < len; i++) {
-		//				str[i] = this.data[this.offset]; this.offset++;
-		//			}
-		//
-		//			return str;
-		//		}
+		,parseFloat : function () {
+			return _this.readInt64();
+		}
+		,parseString : function () {
+			var len = _this.read32();
+			var str = Buffer.alloc(len), i;
+
+			for (i = 0; i < len; i++) {
+				str[i] = data[offset++];
+			}
+			return str.toString('utf8', 0, len-1);
+		}
+
+		,parseBinary : function () {
+			var len = _this.read32();
+			var type = _this.readByte(); // TODO: sub type is ignored for now
+			var str = Buffer.alloc(len), i;
+			for (i = 0; i < len; i++) {
+				str[i] = data[offset++];
+			}
+			return str;
+		}
 	};
 	return _this;
 }
@@ -285,7 +295,13 @@ function factory_binary_decoder(hook_parent){
 var logger=console;
 
 var object = {key: 'value', list: [1,2,3,4,5,6,7,8,9], magical: 10, sub: {list: ['string', 'list', 10]}};
-var encoded = factory_binary_encoder.encode(object);
-logger.log('encoded=',encoded);
-var decoded = factory_binary_decoder.decode(encoded);
+var encoded = factory_binary_encoder().encode(object);
+logger.log('encoded=',encoded,encoded.length);
+
+var decoded = factory_binary_decoder().decode(encoded);
 logger.log('decoded=',decoded);
+
+const BSON = require('./bson.min');
+const bson = new BSON();
+var decoded = bson.deserialize(encoded);
+console.log('decoded:', decoded);
