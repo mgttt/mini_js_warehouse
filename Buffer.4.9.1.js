@@ -10,7 +10,14 @@
 
 var base64 = require('base64-js')
 var ieee754 = require('ieee754')
-var isArray = require('isarray')
+
+//var isArray = require('isarray')
+var toString = {}.toString;
+
+//ugly tmp isArray...TODO fix it
+var isArray = Array.isArray || function (arr) {
+	return toString.call(arr) == '[object Array]';
+}
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
