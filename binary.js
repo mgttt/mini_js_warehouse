@@ -294,9 +294,19 @@ function factory_binary_decoder(hook_parent){
 
 var logger=console;
 
-var object = {key: 'value', list: [1,2,3,4,5,6,7,8,9], magical: 10, sub: {list: ['string', 'list', 10]}};
+var	NOP=1,
+	PUSH=2
+	;
+var mytest=[
+	[NOP],
+	[PUSH],
+];
+var object = {mytest,
+	//key: 'value', list: [1,2,3,4,5,6,7,8,9], magical: 10, sub: {list: ['string', 'list', 10]}
+};
+
 var encoded = factory_binary_encoder().encode(object);
-logger.log('encoded=',encoded,encoded.length);
+logger.log('encoded=',encoded,encoded.length,' with ', JSON.stringify(object).length);
 
 var decoded = factory_binary_decoder().decode(encoded);
 logger.log('decoded=',decoded);
@@ -305,3 +315,10 @@ const BSON = require('./bson.min');
 const bson = new BSON();
 var decoded = bson.deserialize(encoded);
 console.log('decoded:', decoded);
+
+var encoded2 = bson.serialize(object);
+console.log('encoded2:', encoded2,encoded2.length);
+var decoded2 = bson.deserialize(encoded2);
+console.log('decoded2:', decoded2);
+
+
